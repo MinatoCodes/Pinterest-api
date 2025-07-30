@@ -1,38 +1,39 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
-const author = "MinatoCodes";
 
 const app = express();
 app.use(cors());
 
 app.get("/api/pinterest", async (req, res) => {
   const query = req.query.q;
-  const limit = Math.min(parseInt(req.query.count) || 5, 10);
-
   if (!query) return res.status(400).json({ error: "Missing query param ?q=" });
 
   try {
-    const { data } = await axios.get(`https://backend1.tioo.eu.org/pinterest?q=${encodeURIComponent(query)}`);
-    const results = data?.result?.result;
+    const { data } = await axios.get(`https://backend1.tioo.eu.org/pinterest?q=${encodeURIComponent(query)}`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0.0.0 Safari/537.36"
+      }
+    });
 
+    const results = data?.result?.result;
     if (!Array.isArray(results)) {
       return res.status(500).json({ error: "Invalid API response format" });
     }
 
-    const images = results.slice(0, limit).map(item => ({
-      image_url: item.image_url
-    }));
+    // Map all results to HD original images
+    const images = results.map(item => ({
+      image_url: item.images?.original || item.image_url // fallback to image_url if original missing
+    })).filter(Boolean);
 
-    return res.json({
+    res.json({
       query,
-      author: author,
       count: images.length,
       images
     });
   } catch (err) {
-    return res.status(500).json({
-      error: "Error fetching Pinterest images",
+    res.status(500).json({
+      error: "Failed to fetch Pinterest images",
       message: err.message
     });
   }
@@ -40,6 +41,6 @@ app.get("/api/pinterest", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`📦 Pinterest API live at http://localhost:${PORT}/api/pinterest?q=...&count=...`);
+  console.log(`Pinterest API running at http://localhost:${PORT}/api/pinterest?q=...`);
 });
-                                  
+                                   
