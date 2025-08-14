@@ -10,7 +10,7 @@ app.get("/api/pinterest", async (req, res) => {
   if (!query) return res.status(400).json({ error: "Missing query param ?q=" });
 
   try {
-    const { data } = await axios.get(`https://backend1.tioo.eu.org/pinterest?q=${encodeURIComponent(query)}`, {
+    const { data } = await axios.get(`https://secret-pin-minato.vercel.app/api/pinterest?q=${encodeURIComponent(query)}`, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0.0.0 Safari/537.36"
       }
